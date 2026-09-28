@@ -1,5 +1,12 @@
 # Changelog
 
+- Add an optional PennDOT / 511PA statewide CCTV stills pack
+  (`config/cctv_sources.pennsylvania.json`, 1,395 cameras). Public stills are
+  keyless JPEGs at `https://www.511pa.com/map/Cctv/{imageId}`. Enable with
+  `CCTV_SOURCES_FILE=config/cctv_sources.pennsylvania.json` (a non-empty file
+  replaces the live packs unless `CCTV_FORCE_AUSTIN=1`). Live HLS is not
+  included; video requires a PennDOT Video Sharing License (Chris Coulson, @slashie).
+
 - CCTV cameras whose bearing is a guess now say so. Packs mark bearings derived
   from a hash of the camera id as `headingConfidence: 'low'`, but nothing read the
   flag, so roughly 70% of a default catalog rendered like surveyed facings. The HUD
