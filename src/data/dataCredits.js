@@ -169,6 +169,13 @@ export const DATA_CREDITS = [
     html: 'CCTV live video (Delaware): <a href="https://deldot.gov/map/" target="_blank" rel="noopener">DelDOT — Delaware Department of Transportation</a>',
   },
   {
+    key: 'penndot-511pa-cctv',
+    html:
+      'CCTV camera stills (Pennsylvania): PennDOT / PA Turnpike — ' +
+      '<a href="https://www.511pa.com/" target="_blank" rel="noopener">511PA</a> (courtesy). ' +
+      'Stills are for viewing only. Live video is not included and requires a PennDOT Video Sharing License.',
+  },
+  {
     key: 'caltrans-cctv',
     html:
       'CCTV cameras &amp; frames (California): Caltrans — ' +

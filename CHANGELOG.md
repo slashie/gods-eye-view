@@ -1,5 +1,12 @@
 # Changelog
 
+- Optional PennDOT / 511PA camera stills for Pennsylvania
+  (`config/cctv_sources.pennsylvania.json`). The pictures are public stills
+  courtesy of PennDOT and the Pennsylvania Turnpike Commission. They are for
+  viewing in the app. They are not a license to copy, record, or republish
+  them, and live video is not included. PennDOT requires registration and a
+  Video Sharing License before those streams are used (Chris Coulson, @slashie).
+
 - CCTV cameras whose bearing is a guess now say so. Packs mark bearings derived
   from a hash of the camera id as `headingConfidence: 'low'`, but nothing read the
   flag, so roughly 70% of a default catalog rendered like surveyed facings. The HUD
