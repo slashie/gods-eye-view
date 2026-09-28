@@ -684,6 +684,21 @@ By default the 250 cameras nearest downtown Vancouver and Victoria load.
 The Open Government Licence – British Columbia attribution is registered in the
 Data attribution popover.
 
+## PennDOT / 511PA CCTV stills
+
+Optional statewide stills pack at `config/cctv_sources.pennsylvania.json`
+(1,395 cameras). Frames are keyless public JPEGs at
+`https://www.511pa.com/map/Cctv/{imageId}`, courtesy PennDOT / PA Turnpike.
+The pack does not register live video. PennDOT video requires registration and
+a Video Sharing License.
+
+Load it with `CCTV_SOURCES_FILE=config/cctv_sources.pennsylvania.json`.
+A non-empty `CCTV_SOURCES_FILE` is the configured catalog and replaces the live
+packs unless `CCTV_FORCE_AUSTIN=1`. Under the default 4,000-camera cap the pack
+is served whole. Unset `CCTV_SOURCES_FILE` to return to the live packs (the
+default file is the empty Austin placeholder). The frame proxy fetches only the
+still URLs registered from that file.
+
 ## Location control ownership
 
 City/POI rows, search/reset bindings, location readouts and the orbit indicator
@@ -2757,7 +2772,7 @@ its criteria cannot be silently ignored.
 | Satellites             | CelesTrak                                                                                                                                                                                       | `src/data/satellites.js`                              | `/api/celestrak`                                         | 120s                                                                              |
 | Space Missions (30d)   | Launch Library 2 + CelesTrak                                                                                                                                                                    | `src/data/rocketLaunches.js`                          | `/api/launches` + `/api/celestrak/active`                | 5 min                                                                             |
 | Traffic                | OSM Overpass (+ optional TomTom live flow)                                                                                                                                                      | `src/data/traffic.js`                                 | `/api/overpass` + `/api/tomtom`                          | viewport-driven                                                                   |
-| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
+| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + optional PennDOT / 511PA statewide stills (`CCTV_SOURCES_FILE`) + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
 | Radio                  | Radio Browser (public-domain station directory)                                                                                                                                                 | `src/data/radio.js`                                   | `/api/radio/stations`, `/api/radio/click/:uuid`          | 45 min directory refresh                                                          |
 | Transit 🚌             | Operator GTFS-Realtime VehiclePositions (7 keyless regions, `src/data/transitFeeds.js`)                                                                                                         | `src/layers/transit/` via `src/app/layers/transit.js` | `/api/transit`                                           | 15s (poll + delayed playback)                                                     |
 | Bikeshare 🚲           | GBFS (Lyft + BCycle)                                                                                                                                                                            | `src/data/bikeshare.js`                               | `/api/gbfs`                                              | 60s                                                                               |

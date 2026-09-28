@@ -515,6 +515,7 @@
   "src/data/cctvWarendorf.test.mjs",
   "src/data/cctvCalgary.test.mjs",
   "src/data/cctvNswSource.test.mjs",
+  "src/data/cctvPennsylvania.test.mjs",
   "src/data/cctvTxdotSource.test.mjs",
   "src/layers/cctv/source.test.mjs",
   "src/data/alprCameras.js",
