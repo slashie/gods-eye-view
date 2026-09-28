@@ -684,27 +684,16 @@ By default the 250 cameras nearest downtown Vancouver and Victoria load.
 The Open Government Licence – British Columbia attribution is registered in the
 Data attribution popover.
 
-## PennDOT / 511PA camera stills
+## PennDOT / 511PA CCTV source pack
 
-Pennsylvania highway cameras can be shown from
-`config/cctv_sources.pennsylvania.json`. The list covers the state, including
-York County. There is no separate county file.
+The CCTV catalog adds PennDOT and Pennsylvania Turnpike highway cameras for
+Pennsylvania alongside the Austin, Caltrans and TfL packs. The camera list is
+the curated catalog `config/cctv_sources.pennsylvania.json`. Frames are public
+stills at `https://www.511pa.com/map/Cctv/{imageId}`, courtesy PennDOT / PA
+Turnpike. Live video is not included; PennDOT video requires registration and
+a Video Sharing License.
 
-Each camera is a still picture from 511PA, courtesy of PennDOT and the
-Pennsylvania Turnpike Commission. The picture is fetched when you open that
-camera. This project does not keep the pictures, and it does not republish them.
-
-These stills are for viewing in the app. A picture on the public 511PA map is
-not permission to copy it, record it, or use it somewhere else. People,
-vehicles, and license plates may appear in the frame. The app only displays
-the picture.
-
-511PA also offers live video. That video is not part of this pack. Some camera
-rows note where a stream would be, and this app does not play it. PennDOT
-requires registration and a Video Sharing License before those streams are used.
-
-The pack stays off until `CCTV_SOURCES_FILE` points at that file. While that
-setting is set, this list is the camera catalog.
+The courtesy attribution is registered in the Data attribution popover.
 
 ## Location control ownership
 
@@ -2779,7 +2768,7 @@ its criteria cannot be silently ignored.
 | Satellites             | CelesTrak                                                                                                                                                                                       | `src/data/satellites.js`                              | `/api/celestrak`                                         | 120s                                                                              |
 | Space Missions (30d)   | Launch Library 2 + CelesTrak                                                                                                                                                                    | `src/data/rocketLaunches.js`                          | `/api/launches` + `/api/celestrak/active`                | 5 min                                                                             |
 | Traffic                | OSM Overpass (+ optional TomTom live flow)                                                                                                                                                      | `src/data/traffic.js`                                 | `/api/overpass` + `/api/tomtom`                          | viewport-driven                                                                   |
-| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + optional PennDOT / 511PA stills (`CCTV_SOURCES_FILE`) + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
+| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + PennDOT / 511PA (PA) + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
 | Radio                  | Radio Browser (public-domain station directory)                                                                                                                                                 | `src/data/radio.js`                                   | `/api/radio/stations`, `/api/radio/click/:uuid`          | 45 min directory refresh                                                          |
 | Transit 🚌             | Operator GTFS-Realtime VehiclePositions (7 keyless regions, `src/data/transitFeeds.js`)                                                                                                         | `src/layers/transit/` via `src/app/layers/transit.js` | `/api/transit`                                           | 15s (poll + delayed playback)                                                     |
 | Bikeshare 🚲           | GBFS (Lyft + BCycle)                                                                                                                                                                            | `src/data/bikeshare.js`                               | `/api/gbfs`                                              | 60s                                                                               |
@@ -3444,7 +3433,7 @@ silently demoting every later lookup for the session.
   kill switch `CCTV_FINTRAFFIC_ENABLED=0`) are the fourth pack: one keyless GeoJSON station list
   covering the whole country, where one _preset_ (a station's fixed view) is one camera — 806
   GATHERING stations carry 2,256 in-collection presets, prioritized to 300 against seven anchors
-  on the main road spine. `CCTV_MAX_SOURCES` is a 4,000 catalog-wide ceiling shared round-robin
+  on the main road spine. `CCTV_MAX_SOURCES` is a 5,600 catalog-wide ceiling shared round-robin
   across packs, so a lower global cap thins every region instead of starving the last pack.
   ~1,100 cameras total, all RAW PRIOR poses, stills-first.
 - **CCTV v3 UX — viewshed + calibration gizmo** (built 2026-07-05 and field

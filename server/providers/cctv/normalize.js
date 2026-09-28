@@ -334,6 +334,17 @@ export function isLikelyBcCoordinate(lat, lon) {
   );
 }
 
+/** Pennsylvania bounding box, with a little room at the state line. */
+export function isLikelyPennsylvaniaCoordinate(lat, lon) {
+  return (
+    isPlausibleLatLon(lat, lon) &&
+    lat >= 39.6 &&
+    lat <= 42.4 &&
+    lon >= -80.7 &&
+    lon <= -74.6
+  );
+}
+
 /** Texas bounding box. */
 export function isLikelyTexasCoordinate(lat, lon) {
   return (

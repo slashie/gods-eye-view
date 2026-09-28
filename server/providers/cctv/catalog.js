@@ -15,6 +15,7 @@ import {
   loadTallinnSourcesFromCatalog,
   loadTarkteeSourcesFromDatex,
   loadWarendorfSourcesFromCatalog,
+  loadPennDotSourcesFromCatalog,
   loadNswSourcesFromOpenData,
   loadCalgarySourcesFromOpenData,
   loadDelDOTSourcesFromOpenData,
@@ -76,6 +77,11 @@ const LIVE_PACKS = [
     name: 'warendorf',
     enabled: () => envEnabled('CCTV_WARENDORF_ENABLED'),
     load: loadWarendorfSourcesFromCatalog,
+  },
+  {
+    name: 'penndot',
+    enabled: () => envEnabled('CCTV_PENNDOT_ENABLED'),
+    load: loadPennDotSourcesFromCatalog,
   },
   {
     name: 'nsw',

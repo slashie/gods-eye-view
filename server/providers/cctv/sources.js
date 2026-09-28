@@ -45,6 +45,10 @@ import {
   TARKTEE_ANCHORS,
   DEFAULT_WARENDORF_SOURCE_FILE,
   WARENDORF_IMAGE_ORIGINS,
+  DEFAULT_PENNDOT_SOURCE_FILE,
+  PENNDOT_IMAGE_ORIGIN,
+  DEFAULT_PENNDOT_MAX_SOURCES,
+  PENNDOT_ANCHORS,
   NSW_CAMERAS_URL,
   NSW_IMAGE_ORIGIN,
   DEFAULT_NSW_MAX_SOURCES,
@@ -72,6 +76,7 @@ import {
   fintrafficCameraName,
   hashSeed,
   isPlausibleLatLon,
+  isLikelyPennsylvaniaCoordinate,
   isLikelyBcCoordinate,
   isLikelyTexasCoordinate,
   isLikelyNswCoordinate,
@@ -1289,6 +1294,101 @@ export function loadWarendorfSourcesFromCatalog({
   }
   console.log('[CCTV] Loaded Warendorf camera sources:', cameras.length);
   return cameras;
+}
+
+/**
+ * Load PennDOT / 511PA highway-camera stills from the curated statewide catalog.
+ * Only public 511PA still URLs are registered. Live video is not passed through.
+ *
+ * @returns {Array<object>} Normalized camera source objects.
+ */
+export function loadPennDotSourcesFromCatalog({
+  sourceRoot = process.cwd(),
+} = {}) {
+  const sourceFile =
+    process.env.CCTV_PENNDOT_SOURCES_FILE || DEFAULT_PENNDOT_SOURCE_FILE;
+  const resolved = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(sourceRoot, sourceFile);
+  let rows = [];
+  try {
+    if (!fs.existsSync(resolved)) {
+      console.warn('[CCTV] PennDOT source file missing:', resolved);
+      return [];
+    }
+    const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+    rows = Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn(
+      '[CCTV] PennDOT source file read error:',
+      error?.message || error,
+    );
+    return [];
+  }
+
+  const cameras = [];
+  for (const item of rows) {
+    if (!item || typeof item !== 'object') continue;
+    const id = typeof item.id === 'string' ? item.id.trim() : '';
+    const url =
+      typeof item.url === 'string'
+        ? item.url.trim()
+        : typeof item.snapshotUrl === 'string'
+          ? item.snapshotUrl.trim()
+          : '';
+    if (!id || !url.startsWith(PENNDOT_IMAGE_ORIGIN)) continue;
+    if (!/^https:\/\/www\.511pa\.com\/map\/Cctv\/\d+$/.test(url)) continue;
+    const lat = typeof item.lat === 'number' ? item.lat : NaN;
+    const lon = typeof item.lon === 'number' ? item.lon : NaN;
+    if (!isLikelyPennsylvaniaCoordinate(lat, lon)) continue;
+    const headingDeg = toFiniteNumber(item.headingDeg, NaN);
+    cameras.push({
+      id,
+      name: String(item.name || id).trim(),
+      city: String(item.city || ''),
+      cityId: 'pennsylvania',
+      provider: String(item.provider || 'PennDOT').trim() || 'PennDOT',
+      lat,
+      lon,
+      headingDeg: Number.isFinite(headingDeg)
+        ? ((headingDeg % 360) + 360) % 360
+        : fallbackHeadingFromId(id),
+      headingConfidence: Number.isFinite(headingDeg)
+        ? String(item.headingConfidence || 'medium').toLowerCase()
+        : 'low',
+      pitchDeg: toFiniteNumber(item.pitchDeg, -24),
+      fovDeg: toFiniteNumber(item.fovDeg, 56),
+      rangeM: toFiniteNumber(item.rangeM, 210),
+      mountHeightM: toFiniteNumber(item.mountHeightM, 10),
+      groundElevationM: toFiniteNumber(item.groundElevationM, 150),
+      feedType: 'image',
+      url,
+      snapshotUrl: url,
+      sourceKind: 'penndot-511pa',
+      license:
+        String(item.license || '').trim() ||
+        'Public PennDOT / PA Turnpike traffic camera stills',
+      credit:
+        typeof item.credit === 'string' && item.credit.trim()
+          ? item.credit.trim()
+          : url,
+    });
+  }
+
+  const unique = Array.from(
+    new Map(cameras.map((camera) => [camera.id, camera])).values(),
+  );
+  const maxRaw = Number(
+    process.env.CCTV_PENNDOT_MAX_SOURCES || DEFAULT_PENNDOT_MAX_SOURCES,
+  );
+  const maxCount = Number.isFinite(maxRaw)
+    ? Math.max(8, Math.min(2000, Math.floor(maxRaw)))
+    : DEFAULT_PENNDOT_MAX_SOURCES;
+  const prioritized = prioritizeSources(unique, maxCount, PENNDOT_ANCHORS);
+  console.log(
+    `[CCTV] Loaded PennDOT camera sources: ${unique.length} (using nearest ${prioritized.length})`,
+  );
+  return prioritized;
 }
 
 /**

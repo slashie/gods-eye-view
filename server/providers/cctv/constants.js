@@ -11,9 +11,9 @@ export const DEFAULT_AUSTIN_MAX_SOURCES = 250;
  * cap.js) so no region is silently dropped. Sized above the sum of the
  * default per-pack caps so a default install never trims.
  */
-export const DEFAULT_CCTV_MAX_SOURCES = 4000;
+export const DEFAULT_CCTV_MAX_SOURCES = 5600;
 /** Hard upper bound for CCTV_MAX_SOURCES; also sizes the health map. */
-export const CCTV_MAX_SOURCES_CEILING = 5000;
+export const CCTV_MAX_SOURCES_CEILING = 6500;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
 export const AUSTIN_DOWNTOWN = { lat: 30.2672, lon: -97.7431 };
 /** Caltrans CCTV: one JSON feed per district, identical schema statewide. */
@@ -201,6 +201,19 @@ export const WARENDORF_IMAGE_ORIGINS = Object.freeze([
   'http://webcam.warendorf.de/',
   'https://www.kreis-warendorf.de/',
 ]);
+/** PennDOT / 511PA highway cameras: curated statewide stills. */
+export const DEFAULT_PENNDOT_SOURCE_FILE =
+  'config/cctv_sources.pennsylvania.json';
+export const PENNDOT_IMAGE_ORIGIN = 'https://www.511pa.com/map/Cctv/';
+export const DEFAULT_PENNDOT_MAX_SOURCES = 1395;
+/** Philadelphia, Pittsburgh, Harrisburg, Scranton, and Erie. */
+export const PENNDOT_ANCHORS = [
+  { lat: 39.9526, lon: -75.1652 },
+  { lat: 40.4406, lon: -79.9959 },
+  { lat: 40.2732, lon: -76.8867 },
+  { lat: 41.409, lon: -75.6624 },
+  { lat: 42.1292, lon: -80.0851 },
+];
 /** Live Traffic NSW (Transport for NSW): keyless public camera catalog. */
 export const NSW_CAMERAS_URL =
   'https://data.livetraffic.com/cameras/traffic-cam.json';
