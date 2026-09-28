@@ -1,5 +1,9 @@
 # Changelog
 
+- Add a local slashie test camera list (`config/cctv_sources.slashie.json`).
+  The first two entries are Long Level Marina in Wrightsville, public IPCamLive
+  HLS. `CCTV_SLASHIE_ENABLED=0` turns the list off (Chris Coulson, @slashie).
+
 - Add PennDOT / 511PA highway cameras for Pennsylvania to the CCTV layer.
   Frames are public stills courtesy of PennDOT and the Pennsylvania Turnpike
   Commission. Live video is not included; video requires a PennDOT Video

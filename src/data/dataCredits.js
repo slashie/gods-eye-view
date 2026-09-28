@@ -169,6 +169,11 @@ export const DATA_CREDITS = [
     html: 'CCTV live video (Delaware): <a href="https://deldot.gov/map/" target="_blank" rel="noopener">DelDOT — Delaware Department of Transportation</a>',
   },
   {
+    key: 'slashie-cctv',
+    html:
+      'CCTV test cameras: <a href="https://www.longlevelmarina.com/webcams" target="_blank" rel="noopener">Long Level Marina</a> (courtesy)',
+  },
+  {
     key: 'penndot-511pa-cctv',
     html:
       'CCTV cameras &amp; frames (Pennsylvania): PennDOT / PA Turnpike — ' +

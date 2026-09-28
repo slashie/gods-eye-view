@@ -201,6 +201,11 @@ export const WARENDORF_IMAGE_ORIGINS = Object.freeze([
   'http://webcam.warendorf.de/',
   'https://www.kreis-warendorf.de/',
 ]);
+/** Local test cameras. Public IPCamLive HLS only; not a statewide pack. */
+export const DEFAULT_SLASHIE_SOURCE_FILE = 'config/cctv_sources.slashie.json';
+export const DEFAULT_SLASHIE_MAX_SOURCES = 8;
+export const SLASHIE_STREAM_URL =
+  /^https:\/\/s\d+\.ipcamlive\.com\/streams\/[a-z0-9]+\/stream\.m3u8$/;
 /** PennDOT / 511PA highway cameras: curated statewide stills. */
 export const DEFAULT_PENNDOT_SOURCE_FILE =
   'config/cctv_sources.pennsylvania.json';

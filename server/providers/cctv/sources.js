@@ -45,6 +45,9 @@ import {
   TARKTEE_ANCHORS,
   DEFAULT_WARENDORF_SOURCE_FILE,
   WARENDORF_IMAGE_ORIGINS,
+  DEFAULT_SLASHIE_SOURCE_FILE,
+  DEFAULT_SLASHIE_MAX_SOURCES,
+  SLASHIE_STREAM_URL,
   DEFAULT_PENNDOT_SOURCE_FILE,
   PENNDOT_IMAGE_ORIGIN,
   DEFAULT_PENNDOT_MAX_SOURCES,
@@ -1294,6 +1297,92 @@ export function loadWarendorfSourcesFromCatalog({
   }
   console.log('[CCTV] Loaded Warendorf camera sources:', cameras.length);
   return cameras;
+}
+
+/**
+ * Load the local slashie test list. Each row must be a public IPCamLive HLS
+ * playlist; the matching snapshot.jpg on that same stream is the still.
+ *
+ * @returns {Array<object>} Normalized camera source objects.
+ */
+export function loadSlashieSourcesFromCatalog({
+  sourceRoot = process.cwd(),
+} = {}) {
+  const sourceFile =
+    process.env.CCTV_SLASHIE_SOURCES_FILE || DEFAULT_SLASHIE_SOURCE_FILE;
+  const resolved = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(sourceRoot, sourceFile);
+  let rows = [];
+  try {
+    if (!fs.existsSync(resolved)) {
+      console.warn('[CCTV] slashie source file missing:', resolved);
+      return [];
+    }
+    const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+    rows = Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn(
+      '[CCTV] slashie source file read error:',
+      error?.message || error,
+    );
+    return [];
+  }
+
+  const cameras = [];
+  for (const item of rows) {
+    if (!item || typeof item !== 'object') continue;
+    const id = typeof item.id === 'string' ? item.id.trim() : '';
+    const url = typeof item.url === 'string' ? item.url.trim() : '';
+    if (!id || !SLASHIE_STREAM_URL.test(url)) continue;
+    const snapshotUrl = url.replace(/stream\.m3u8$/, 'snapshot.jpg');
+    const lat = typeof item.lat === 'number' ? item.lat : NaN;
+    const lon = typeof item.lon === 'number' ? item.lon : NaN;
+    if (!isPlausibleLatLon(lat, lon)) continue;
+    const headingDeg = toFiniteNumber(item.headingDeg, NaN);
+    cameras.push({
+      id,
+      name: String(item.name || id).trim(),
+      city: String(item.city || ''),
+      cityId: 'slashie',
+      provider: String(item.provider || 'slashie').trim() || 'slashie',
+      lat,
+      lon,
+      headingDeg: Number.isFinite(headingDeg)
+        ? ((headingDeg % 360) + 360) % 360
+        : fallbackHeadingFromId(id),
+      headingConfidence: 'low',
+      pitchDeg: toFiniteNumber(item.pitchDeg, -18),
+      fovDeg: toFiniteNumber(item.fovDeg, 70),
+      rangeM: toFiniteNumber(item.rangeM, 80),
+      mountHeightM: toFiniteNumber(item.mountHeightM, 6),
+      groundElevationM: toFiniteNumber(item.groundElevationM, 80),
+      feedType: 'hls',
+      url,
+      snapshotUrl,
+      sourceKind: 'slashie-ipcamlive',
+      license:
+        String(item.license || '').trim() ||
+        'Public webcam (courtesy)',
+      credit:
+        typeof item.credit === 'string' && item.credit.trim()
+          ? item.credit.trim()
+          : '',
+    });
+  }
+
+  const unique = Array.from(
+    new Map(cameras.map((camera) => [camera.id, camera])).values(),
+  );
+  const maxRaw = Number(
+    process.env.CCTV_SLASHIE_MAX_SOURCES || DEFAULT_SLASHIE_MAX_SOURCES,
+  );
+  const maxCount = Number.isFinite(maxRaw)
+    ? Math.max(1, Math.min(32, Math.floor(maxRaw)))
+    : DEFAULT_SLASHIE_MAX_SOURCES;
+  const listed = unique.slice(0, maxCount);
+  console.log(`[CCTV] Loaded slashie camera sources: ${listed.length}`);
+  return listed;
 }
 
 /**
