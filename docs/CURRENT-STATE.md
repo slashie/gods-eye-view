@@ -703,6 +703,16 @@ public IPCamLive HLS. Each playlist is clear MPEG-TS on its own
 `sNNN.ipcamlive.com` host, and the still is `snapshot.jpg` on that same stream.
 `CCTV_SLASHIE_ENABLED=0` turns the list off.
 
+## Pennsylvania webcams pack
+
+The CCTV catalog adds a curated Pennsylvania webcams pack from
+`config/cctv_sources.pa-webcams.json`. Long Level Marina cameras play public
+IPCamLive HLS (clear MPEG-TS) with a `snapshot.jpg` still on the same stream.
+Traffic cameras register public 511PA stills only; auth-gated 511PA video,
+YouTube, and page-only entries are omitted. Courtesy attribution for Long Level
+Marina and PennDOT / PA Turnpike is registered in the Data attribution popover.
+`CCTV_PA_WEBCAMS_ENABLED=0` turns the pack off.
+
 ## Location control ownership
 
 City/POI rows, search/reset bindings, location readouts and the orbit indicator
@@ -2776,7 +2786,7 @@ its criteria cannot be silently ignored.
 | Satellites             | CelesTrak                                                                                                                                                                                       | `src/data/satellites.js`                              | `/api/celestrak`                                         | 120s                                                                              |
 | Space Missions (30d)   | Launch Library 2 + CelesTrak                                                                                                                                                                    | `src/data/rocketLaunches.js`                          | `/api/launches` + `/api/celestrak/active`                | 5 min                                                                             |
 | Traffic                | OSM Overpass (+ optional TomTom live flow)                                                                                                                                                      | `src/data/traffic.js`                                 | `/api/overpass` + `/api/tomtom`                          | viewport-driven                                                                   |
-| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + PennDOT / 511PA (PA) + slashie test cameras + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
+| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + PennDOT / 511PA (PA) + Pennsylvania webcams + slashie test cameras + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
 | Radio                  | Radio Browser (public-domain station directory)                                                                                                                                                 | `src/data/radio.js`                                   | `/api/radio/stations`, `/api/radio/click/:uuid`          | 45 min directory refresh                                                          |
 | Transit 🚌             | Operator GTFS-Realtime VehiclePositions (7 keyless regions, `src/data/transitFeeds.js`)                                                                                                         | `src/layers/transit/` via `src/app/layers/transit.js` | `/api/transit`                                           | 15s (poll + delayed playback)                                                     |
 | Bikeshare 🚲           | GBFS (Lyft + BCycle)                                                                                                                                                                            | `src/data/bikeshare.js`                               | `/api/gbfs`                                              | 60s                                                                               |

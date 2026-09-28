@@ -174,6 +174,13 @@ export const DATA_CREDITS = [
       'CCTV test cameras: <a href="https://www.longlevelmarina.com/webcams" target="_blank" rel="noopener">Long Level Marina</a> (courtesy)',
   },
   {
+    key: 'pa-webcams-cctv',
+    html:
+      'CCTV cameras &amp; video (Pennsylvania webcams): ' +
+      '<a href="https://www.longlevelmarina.com/webcams" target="_blank" rel="noopener">Long Level Marina</a> / ' +
+      'PennDOT / PA Turnpike — <a href="https://www.511pa.com/" target="_blank" rel="noopener">511PA</a> (courtesy)',
+  },
+  {
     key: 'penndot-511pa-cctv',
     html:
       'CCTV cameras &amp; frames (Pennsylvania): PennDOT / PA Turnpike — ' +

@@ -21,6 +21,7 @@ import {
   DEFAULT_DELDOT_MAX_SOURCES,
   DEFAULT_PENNDOT_MAX_SOURCES,
   DEFAULT_SLASHIE_MAX_SOURCES,
+  DEFAULT_PA_WEBCAMS_MAX_SOURCES,
   DRIVEBC_WEBCAMS_URL,
 } from '../../server/providers/cctv/constants.js';
 import {
@@ -242,6 +243,7 @@ test('default per-pack camera caps fit inside the default catalog cap', () => {
     DEFAULT_DELDOT_MAX_SOURCES +
     DEFAULT_PENNDOT_MAX_SOURCES +
     DEFAULT_SLASHIE_MAX_SOURCES +
+    DEFAULT_PA_WEBCAMS_MAX_SOURCES +
     1;
   assert.ok(
     packs <= DEFAULT_CCTV_MAX_SOURCES,

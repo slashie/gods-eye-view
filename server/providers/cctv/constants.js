@@ -206,6 +206,17 @@ export const DEFAULT_SLASHIE_SOURCE_FILE = 'config/cctv_sources.slashie.json';
 export const DEFAULT_SLASHIE_MAX_SOURCES = 8;
 export const SLASHIE_STREAM_URL =
   /^https:\/\/s\d+\.ipcamlive\.com\/streams\/[a-z0-9]+\/stream\.m3u8$/;
+/**
+ * Curated Pennsylvania webcams: public IPCamLive HLS where available, else
+ * 511PA stills. YouTube and page-only entries from the source export are omitted.
+ */
+export const DEFAULT_PA_WEBCAMS_SOURCE_FILE =
+  'config/cctv_sources.pa-webcams.json';
+export const DEFAULT_PA_WEBCAMS_MAX_SOURCES = 86;
+export const PA_WEBCAMS_HLS_URL =
+  /^https:\/\/s\d+\.ipcamlive\.com\/streams\/[a-z0-9]+\/stream\.m3u8$/;
+export const PA_WEBCAMS_STILL_URL =
+  /^https:\/\/www\.511pa\.com\/map\/Cctv\/\d+$/;
 /** PennDOT / 511PA highway cameras: curated statewide stills. */
 export const DEFAULT_PENNDOT_SOURCE_FILE =
   'config/cctv_sources.pennsylvania.json';

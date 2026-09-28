@@ -16,6 +16,7 @@ import {
   loadTarkteeSourcesFromDatex,
   loadWarendorfSourcesFromCatalog,
   loadSlashieSourcesFromCatalog,
+  loadPaWebcamsSourcesFromCatalog,
   loadPennDotSourcesFromCatalog,
   loadNswSourcesFromOpenData,
   loadCalgarySourcesFromOpenData,
@@ -83,6 +84,11 @@ const LIVE_PACKS = [
     name: 'slashie',
     enabled: () => envEnabled('CCTV_SLASHIE_ENABLED'),
     load: loadSlashieSourcesFromCatalog,
+  },
+  {
+    name: 'pa-webcams',
+    enabled: () => envEnabled('CCTV_PA_WEBCAMS_ENABLED'),
+    load: loadPaWebcamsSourcesFromCatalog,
   },
   {
     name: 'penndot',

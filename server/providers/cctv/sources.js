@@ -48,6 +48,10 @@ import {
   DEFAULT_SLASHIE_SOURCE_FILE,
   DEFAULT_SLASHIE_MAX_SOURCES,
   SLASHIE_STREAM_URL,
+  DEFAULT_PA_WEBCAMS_SOURCE_FILE,
+  DEFAULT_PA_WEBCAMS_MAX_SOURCES,
+  PA_WEBCAMS_HLS_URL,
+  PA_WEBCAMS_STILL_URL,
   DEFAULT_PENNDOT_SOURCE_FILE,
   PENNDOT_IMAGE_ORIGIN,
   DEFAULT_PENNDOT_MAX_SOURCES,
@@ -1382,6 +1386,137 @@ export function loadSlashieSourcesFromCatalog({
     : DEFAULT_SLASHIE_MAX_SOURCES;
   const listed = unique.slice(0, maxCount);
   console.log(`[CCTV] Loaded slashie camera sources: ${listed.length}`);
+  return listed;
+}
+
+/**
+ * Load curated Pennsylvania webcams. Public IPCamLive HLS playlists play as
+ * video; 511PA traffic entries register as stills only (auth-gated video is
+ * dropped). YouTube and page-only rows never enter the catalog.
+ *
+ * @returns {Array<object>} Normalized camera source objects.
+ */
+export function loadPaWebcamsSourcesFromCatalog({
+  sourceRoot = process.cwd(),
+} = {}) {
+  const sourceFile =
+    process.env.CCTV_PA_WEBCAMS_SOURCES_FILE || DEFAULT_PA_WEBCAMS_SOURCE_FILE;
+  const resolved = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(sourceRoot, sourceFile);
+  let rows = [];
+  try {
+    if (!fs.existsSync(resolved)) {
+      console.warn('[CCTV] PA webcams source file missing:', resolved);
+      return [];
+    }
+    const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+    rows = Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn(
+      '[CCTV] PA webcams source file read error:',
+      error?.message || error,
+    );
+    return [];
+  }
+
+  const cameras = [];
+  for (const item of rows) {
+    if (!item || typeof item !== 'object') continue;
+    const id = typeof item.id === 'string' ? item.id.trim() : '';
+    const url = typeof item.url === 'string' ? item.url.trim() : '';
+    if (!id || !url) continue;
+    const lat = typeof item.lat === 'number' ? item.lat : NaN;
+    const lon = typeof item.lon === 'number' ? item.lon : NaN;
+    if (!isLikelyPennsylvaniaCoordinate(lat, lon)) continue;
+    const headingDeg = toFiniteNumber(item.headingDeg, NaN);
+    const feedType = String(item.feedType || '').trim().toLowerCase();
+
+    if (feedType === 'hls') {
+      if (!PA_WEBCAMS_HLS_URL.test(url)) continue;
+      const snapshotUrl =
+        typeof item.snapshotUrl === 'string' && item.snapshotUrl.trim()
+          ? item.snapshotUrl.trim()
+          : url.replace(/stream\.m3u8$/, 'snapshot.jpg');
+      cameras.push({
+        id,
+        name: String(item.name || id).trim(),
+        city: String(item.city || ''),
+        cityId: 'pa-webcams',
+        provider: String(item.provider || 'Pennsylvania').trim() || 'Pennsylvania',
+        lat,
+        lon,
+        headingDeg: Number.isFinite(headingDeg)
+          ? ((headingDeg % 360) + 360) % 360
+          : fallbackHeadingFromId(id),
+        headingConfidence: Number.isFinite(headingDeg)
+          ? String(item.headingConfidence || 'low').toLowerCase()
+          : 'low',
+        pitchDeg: toFiniteNumber(item.pitchDeg, -18),
+        fovDeg: toFiniteNumber(item.fovDeg, 70),
+        rangeM: toFiniteNumber(item.rangeM, 80),
+        mountHeightM: toFiniteNumber(item.mountHeightM, 6),
+        groundElevationM: toFiniteNumber(item.groundElevationM, 80),
+        feedType: 'hls',
+        url,
+        snapshotUrl,
+        sourceKind: 'pa-webcams-hls',
+        license:
+          String(item.license || '').trim() || 'Public webcam (courtesy)',
+        credit:
+          typeof item.credit === 'string' && item.credit.trim()
+            ? item.credit.trim()
+            : '',
+      });
+      continue;
+    }
+
+    if (feedType !== 'image' && feedType !== '') continue;
+    if (!PA_WEBCAMS_STILL_URL.test(url)) continue;
+    cameras.push({
+      id,
+      name: String(item.name || id).trim(),
+      city: String(item.city || ''),
+      cityId: 'pa-webcams',
+      provider: String(item.provider || 'PennDOT').trim() || 'PennDOT',
+      lat,
+      lon,
+      headingDeg: Number.isFinite(headingDeg)
+        ? ((headingDeg % 360) + 360) % 360
+        : fallbackHeadingFromId(id),
+      headingConfidence: Number.isFinite(headingDeg)
+        ? String(item.headingConfidence || 'low').toLowerCase()
+        : 'low',
+      pitchDeg: toFiniteNumber(item.pitchDeg, -24),
+      fovDeg: toFiniteNumber(item.fovDeg, 56),
+      rangeM: toFiniteNumber(item.rangeM, 210),
+      mountHeightM: toFiniteNumber(item.mountHeightM, 10),
+      groundElevationM: toFiniteNumber(item.groundElevationM, 150),
+      feedType: 'image',
+      url,
+      snapshotUrl: url,
+      sourceKind: 'pa-webcams-511pa',
+      license:
+        String(item.license || '').trim() ||
+        'Public PennDOT / PA Turnpike traffic camera stills',
+      credit:
+        typeof item.credit === 'string' && item.credit.trim()
+          ? item.credit.trim()
+          : url,
+    });
+  }
+
+  const unique = Array.from(
+    new Map(cameras.map((camera) => [camera.id, camera])).values(),
+  );
+  const maxRaw = Number(
+    process.env.CCTV_PA_WEBCAMS_MAX_SOURCES || DEFAULT_PA_WEBCAMS_MAX_SOURCES,
+  );
+  const maxCount = Number.isFinite(maxRaw)
+    ? Math.max(1, Math.min(200, Math.floor(maxRaw)))
+    : DEFAULT_PA_WEBCAMS_MAX_SOURCES;
+  const listed = unique.slice(0, maxCount);
+  console.log(`[CCTV] Loaded PA webcams camera sources: ${listed.length}`);
   return listed;
 }
 
