@@ -11,9 +11,9 @@ export const DEFAULT_AUSTIN_MAX_SOURCES = 250;
  * cap.js) so no region is silently dropped. Sized above the sum of the
  * default per-pack caps so a default install never trims.
  */
-export const DEFAULT_CCTV_MAX_SOURCES = 5600;
+export const DEFAULT_CCTV_MAX_SOURCES = 6700;
 /** Hard upper bound for CCTV_MAX_SOURCES; also sizes the health map. */
-export const CCTV_MAX_SOURCES_CEILING = 6500;
+export const CCTV_MAX_SOURCES_CEILING = 7500;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
 export const AUSTIN_DOWNTOWN = { lat: 30.2672, lon: -97.7431 };
 /** Caltrans CCTV: one JSON feed per district, identical schema statewide. */
@@ -272,6 +272,28 @@ export const DELDOT_ANCHORS = [
   { lat: 39.7459, lon: -75.5466 }, // Wilmington (New Castle)
   { lat: 39.1582, lon: -75.5244 }, // Dover (Kent)
   { lat: 38.6906, lon: -75.3877 }, // Georgetown (Sussex)
+];
+/** USGS NIMS streamgage cameras: keyless catalog, newest JPEG only. */
+export const USGS_NIMS_CAMERAS_URL =
+  'https://api.waterdata.usgs.gov/nims/v0/cameras';
+export const USGS_NIMS_IMAGE_ORIGIN = 'https://usgs-nims-images.s3.amazonaws.com/720/';
+export const DEFAULT_USGS_NIMS_MAX_SOURCES = 1000;
+export const USGS_NIMS_MAX_CATALOG_BYTES = 4 * 1024 * 1024;
+/** Drop a gauge whose newest frame is older than this. */
+export const USGS_NIMS_MAX_IMAGE_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+export const USGS_NIMS_ANCHORS = [
+  { lat: 40.7128, lon: -74.006 }, // New York
+  { lat: 38.9072, lon: -77.0369 }, // Washington
+  { lat: 41.8781, lon: -87.6298 }, // Chicago
+  { lat: 33.749, lon: -84.388 }, // Atlanta
+  { lat: 29.7604, lon: -95.3698 }, // Houston
+  { lat: 39.7392, lon: -104.9903 }, // Denver
+  { lat: 33.4484, lon: -112.074 }, // Phoenix
+  { lat: 47.6062, lon: -122.3321 }, // Seattle
+  { lat: 34.0522, lon: -118.2437 }, // Los Angeles
+  { lat: 25.7617, lon: -80.1918 }, // Miami
+  { lat: 61.2181, lon: -149.9003 }, // Anchorage
+  { lat: 21.3069, lon: -157.8583 }, // Honolulu
 ];
 /** Camera CATALOGS change rarely; 15 min keeps multi-megabyte upstream list refetches (Austin rows.json + 4 Caltrans districts + TfL + Ontario 511) infrequent. Frames are fetched per-request and are unaffected. */
 export const CCTV_SOURCE_CACHE_MS = 15 * 60 * 1000;

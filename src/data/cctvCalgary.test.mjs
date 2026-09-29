@@ -384,6 +384,6 @@ test('CCTV_CALGARY_ENABLED=0 keeps the lane from being loaded at all', async (t)
   }
 });
 
-test('the shipped catalog ceiling is not raised to make room for this pack', () => {
-  assert.equal(DEFAULT_CCTV_MAX_SOURCES, 4000);
+test('the shipped catalog cap covers the default packs including USGS streamgages', () => {
+  assert.equal(DEFAULT_CCTV_MAX_SOURCES, 6700);
 });

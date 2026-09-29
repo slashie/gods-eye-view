@@ -1,5 +1,10 @@
 # Changelog
 
+- Add USGS streamgage cameras to the CCTV layer. Frames are the newest public
+  JPEG from the USGS NIMS catalog, courtesy of the U.S. Geological Survey.
+  Hidden gauges and frames older than seven days are left out.
+  `CCTV_USGS_NIMS_ENABLED=0` turns the pack off (Chris Coulson, @slashie).
+
 - Add a curated Pennsylvania webcams pack (`config/cctv_sources.pa-webcams.json`)
   with Long Level Marina public HLS and 511PA traffic stills. Auth-gated video,
   YouTube, and page-only cams stay out of the catalog. `CCTV_PA_WEBCAMS_ENABLED=0`

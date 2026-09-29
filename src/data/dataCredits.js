@@ -187,6 +187,12 @@ export const DATA_CREDITS = [
       '<a href="https://www.511pa.com/" target="_blank" rel="noopener">511PA</a> (courtesy)',
   },
   {
+    key: 'usgs-nims-cctv',
+    html:
+      'CCTV cameras &amp; frames (USGS streamgages): U.S. Geological Survey — ' +
+      '<a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">waterdata.usgs.gov</a> (courtesy)',
+  },
+  {
     key: 'caltrans-cctv',
     html:
       'CCTV cameras &amp; frames (California): Caltrans — ' +

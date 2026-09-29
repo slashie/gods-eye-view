@@ -70,6 +70,12 @@ import {
   DELDOT_CCTV_URL,
   DEFAULT_DELDOT_MAX_SOURCES,
   DELDOT_ANCHORS,
+  USGS_NIMS_CAMERAS_URL,
+  USGS_NIMS_IMAGE_ORIGIN,
+  DEFAULT_USGS_NIMS_MAX_SOURCES,
+  USGS_NIMS_MAX_CATALOG_BYTES,
+  USGS_NIMS_MAX_IMAGE_AGE_MS,
+  USGS_NIMS_ANCHORS,
 } from './constants.js';
 import {
   toFiniteNumber,
@@ -2020,6 +2026,117 @@ export async function loadDelDOTSourcesFromOpenData() {
   } catch (error) {
     console.warn(
       '[CCTV] DelDOT source download error:',
+      error?.message || error,
+    );
+    return [];
+  }
+}
+
+const USGS_NIMS_CAMERA_ID = /^[A-Za-z0-9_()\-]{1,160}$/;
+
+/**
+ * Newest-frame URL built only from a safe camera id. The catalog's own
+ * directory fields are ignored so a row cannot point the proxy elsewhere.
+ *
+ * @param {string} camId
+ * @returns {string}
+ */
+function usgsNimsImageUrl(camId) {
+  if (!USGS_NIMS_CAMERA_ID.test(camId) || camId.includes('..')) return '';
+  return `${USGS_NIMS_IMAGE_ORIGIN}${camId}/${camId}_newest.jpg`;
+}
+
+/** Alaska, Hawaii, Guam, Puerto Rico, and the contiguous states. */
+function isLikelyUsgsCameraCoordinate(lat, lon) {
+  if (lat < 13 || lat > 72) return false;
+  if (lon >= -180 && lon <= -64) return true;
+  return lon >= 140 && lon <= 180;
+}
+
+/**
+ * Load USGS NIMS streamgage cameras. Hidden gauges and frames older than
+ * seven days are dropped. Each camera is the current JPEG only.
+ *
+ * @returns {Promise<Array<object>>} Normalized camera source objects.
+ */
+export async function loadUsgsNimsSourcesFromOpenData() {
+  try {
+    const resp = await fetch(USGS_NIMS_CAMERAS_URL, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
+      redirect: 'error',
+    });
+    if (!resp.ok) {
+      console.warn('[CCTV] USGS NIMS source download failed:', resp.status);
+      return [];
+    }
+    const payload = await readResponseJsonCapped(
+      resp,
+      USGS_NIMS_MAX_CATALOG_BYTES,
+    );
+    const rows = Array.isArray(payload) ? payload : [];
+    if (!rows.length) return [];
+
+    const newestCutoff = Date.now() - USGS_NIMS_MAX_IMAGE_AGE_MS;
+    const cameras = [];
+    for (const row of rows) {
+      if (row?.hideCam === true) continue;
+      const newestAt = Date.parse(row?.newestImageDT || '');
+      if (!Number.isFinite(newestAt) || newestAt < newestCutoff) continue;
+      const lat = toFiniteNumber(row?.lat);
+      const lon = toFiniteNumber(row?.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      if (!isLikelyUsgsCameraCoordinate(lat, lon)) continue;
+
+      const camId = String(row?.camId || '').trim();
+      const imageUrl = usgsNimsImageUrl(camId);
+      if (!imageUrl) continue;
+      const state = String(row?.stateAbrv || '')
+        .trim()
+        .toUpperCase();
+      const stateOk = /^[A-Z]{2}$/.test(state);
+      const headingDeg = fallbackHeadingFromId(`usgs-nims-${camId}`);
+      cameras.push({
+        id: `usgs-nims-${camId.toLowerCase()}`,
+        name: String(row?.camName || row?.camDesc || camId).trim(),
+        city: stateOk ? state : 'United States',
+        cityId: stateOk ? `usgs-${state.toLowerCase()}` : 'usgs',
+        provider: 'USGS',
+        lat,
+        lon,
+        headingDeg,
+        headingConfidence: 'low',
+        pitchDeg: -18,
+        fovDeg: 44,
+        rangeM: 145,
+        mountHeightM: 8,
+        groundElevationM: 50,
+        feedType: 'image',
+        url: imageUrl,
+        snapshotUrl: imageUrl,
+        sourceKind: 'usgs-nims',
+        license: 'Public USGS streamgage camera still',
+        credit: 'https://waterdata.usgs.gov/',
+      });
+    }
+
+    const unique = Array.from(
+      new Map(cameras.map((camera) => [camera.id, camera])).values(),
+    );
+    const maxRaw = Number(
+      process.env.CCTV_USGS_NIMS_MAX_SOURCES || DEFAULT_USGS_NIMS_MAX_SOURCES,
+    );
+    const maxCount = Number.isFinite(maxRaw)
+      ? Math.max(8, Math.min(1400, Math.floor(maxRaw)))
+      : DEFAULT_USGS_NIMS_MAX_SOURCES;
+    const prioritized = prioritizeSources(unique, maxCount, USGS_NIMS_ANCHORS);
+    console.log(
+      `[CCTV] Loaded USGS NIMS camera sources: ${unique.length} (using nearest ${prioritized.length})`,
+    );
+    return prioritized;
+  } catch (error) {
+    console.warn(
+      '[CCTV] USGS NIMS source download error:',
       error?.message || error,
     );
     return [];
