@@ -193,6 +193,12 @@ export const DATA_CREDITS = [
       '<a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">waterdata.usgs.gov</a> (courtesy)',
   },
   {
+    key: 'mdot-chart-cctv',
+    html:
+      'CCTV live video (Maryland): MDOT SHA / CHART — ' +
+      '<a href="https://chart.maryland.gov/" target="_blank" rel="noopener">chart.maryland.gov</a> (courtesy)',
+  },
+  {
     key: 'caltrans-cctv',
     html:
       'CCTV cameras &amp; frames (California): Caltrans — ' +

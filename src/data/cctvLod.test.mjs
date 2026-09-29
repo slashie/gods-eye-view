@@ -21,6 +21,7 @@ import {
   hasFiniteCctvViewport,
   incumbentRankKm,
   screenCenterFraction,
+  screenPointInView,
   selectCctvLod,
   staticFrameRefreshMs,
 } from './cctvLod.js';
@@ -33,6 +34,14 @@ function candidates(count, options = {}) {
     isVideo: options.videoAt === index,
   }));
 }
+
+test('screenPointInView keeps on-screen cameras and drops the rest', () => {
+  assert.equal(screenPointInView({ x: 100, y: 100 }, 800, 600), true);
+  assert.equal(screenPointInView({ x: -10, y: 10 }, 800, 600, 0.06), true);
+  assert.equal(screenPointInView({ x: 5000, y: 10 }, 800, 600), false);
+  assert.equal(screenPointInView(null, 800, 600), false);
+  assert.equal(screenPointInView({ x: 1, y: 1 }, 0, 0), true);
+});
 
 test('cctvLodBudgets scales the card budget from 20 to 40 with view height', () => {
   // Owner round 2 (item C): budgets raised 16/24/32 -> 20/28/40.

@@ -22,6 +22,7 @@ import {
   loadCalgarySourcesFromOpenData,
   loadDelDOTSourcesFromOpenData,
   loadUsgsNimsSourcesFromOpenData,
+  loadMdotSourcesFromOpenData,
 } from './sources.js';
 
 /** Env kill switch: unset or anything but "0" means enabled. */
@@ -115,6 +116,11 @@ const LIVE_PACKS = [
     name: 'usgs-nims',
     enabled: () => envEnabled('CCTV_USGS_NIMS_ENABLED'),
     load: loadUsgsNimsSourcesFromOpenData,
+  },
+  {
+    name: 'mdot',
+    enabled: () => envEnabled('CCTV_MDOT_ENABLED'),
+    load: loadMdotSourcesFromOpenData,
   },
 ];
 /**

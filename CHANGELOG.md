@@ -1,5 +1,14 @@
 # Changelog
 
+- Show CCTV icons only for cameras inside the current view. Off-screen
+  cameras stay in the catalog, and ground sampling runs for the cameras on
+  screen plus the one you have selected (Chris Coulson, @slashie).
+
+- Add MDOT SHA / CHART highway cameras for Maryland to the CCTV layer.
+  Online cameras in good status play public HTTPS HLS courtesy of MDOT SHA /
+  CHART. Existing still-image packs are unchanged. `CCTV_MDOT_ENABLED=0`
+  turns the pack off (Chris Coulson, @slashie).
+
 - Add USGS streamgage cameras to the CCTV layer. Frames are the newest public
   JPEG from the USGS NIMS catalog, courtesy of the U.S. Geological Survey.
   Hidden gauges and frames older than seven days are left out.

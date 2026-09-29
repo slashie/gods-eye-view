@@ -705,6 +705,26 @@ fetched at request time and never stored. Courtesy of the U.S. Geological
 Survey, with a link to waterdata.usgs.gov in the Data attribution popover.
 `CCTV_USGS_NIMS_ENABLED=0` turns the pack off.
 
+## MDOT SHA / CHART CCTV source pack
+
+The CCTV catalog adds MDOT SHA CHART highway cameras for Maryland. The camera
+list is the keyless `https://chart.maryland.gov/DataFeeds/GetCamerasJson`
+feed. Online cameras in good status play public HLS at
+`https://{cctvIp}/rtplive/{id}/playlist.m3u8` on `strmrN.sha.maryland.gov`.
+The JPEG at `https://chart.maryland.gov/wwwroot/thumbnails/{id}.jpg` is the
+still used when video is not playing. Existing still-image packs stay stills.
+Frames and stream segments are fetched at request time and never stored.
+Courtesy of MDOT SHA / CHART, with a link to chart.maryland.gov in the Data
+attribution popover. `CCTV_MDOT_ENABLED=0` turns the pack off.
+
+## CCTV icons in the current view
+
+Camera icons are drawn only when they sit on the near side of the globe and
+inside the screen, with a small margin at the edge. The catalog still holds
+every loaded camera. Ground sampling runs for the cameras on screen and the
+selected camera. When the view settles, cameras that have entered the screen
+are sampled; cameras that remain off screen are not.
+
 ## slashie test cameras
 
 `config/cctv_sources.slashie.json` loads with the other camera packs. It is a
@@ -2796,7 +2816,7 @@ its criteria cannot be silently ignored.
 | Satellites             | CelesTrak                                                                                                                                                                                       | `src/data/satellites.js`                              | `/api/celestrak`                                         | 120s                                                                              |
 | Space Missions (30d)   | Launch Library 2 + CelesTrak                                                                                                                                                                    | `src/data/rocketLaunches.js`                          | `/api/launches` + `/api/celestrak/active`                | 5 min                                                                             |
 | Traffic                | OSM Overpass (+ optional TomTom live flow)                                                                                                                                                      | `src/data/traffic.js`                                 | `/api/overpass` + `/api/tomtom`                          | viewport-driven                                                                   |
-| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + PennDOT / 511PA (PA) + Pennsylvania webcams + USGS NIMS streamgages + slashie test cameras + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
+| CCTV                   | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + PennDOT / 511PA (PA) + Pennsylvania webcams + MDOT SHA / CHART (MD, live video) + USGS NIMS streamgages + slashie test cameras + Street View fallback | `src/data/cctv.js`                                    | `/api/cctv`                                              | 10s (active)                                                                      |
 | Radio                  | Radio Browser (public-domain station directory)                                                                                                                                                 | `src/data/radio.js`                                   | `/api/radio/stations`, `/api/radio/click/:uuid`          | 45 min directory refresh                                                          |
 | Transit 🚌             | Operator GTFS-Realtime VehiclePositions (7 keyless regions, `src/data/transitFeeds.js`)                                                                                                         | `src/layers/transit/` via `src/app/layers/transit.js` | `/api/transit`                                           | 15s (poll + delayed playback)                                                     |
 | Bikeshare 🚲           | GBFS (Lyft + BCycle)                                                                                                                                                                            | `src/data/bikeshare.js`                               | `/api/gbfs`                                              | 60s                                                                               |

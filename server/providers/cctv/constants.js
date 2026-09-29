@@ -11,7 +11,7 @@ export const DEFAULT_AUSTIN_MAX_SOURCES = 250;
  * cap.js) so no region is silently dropped. Sized above the sum of the
  * default per-pack caps so a default install never trims.
  */
-export const DEFAULT_CCTV_MAX_SOURCES = 6700;
+export const DEFAULT_CCTV_MAX_SOURCES = 7200;
 /** Hard upper bound for CCTV_MAX_SOURCES; also sizes the health map. */
 export const CCTV_MAX_SOURCES_CEILING = 7500;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
@@ -294,6 +294,20 @@ export const USGS_NIMS_ANCHORS = [
   { lat: 25.7617, lon: -80.1918 }, // Miami
   { lat: 61.2181, lon: -149.9003 }, // Anchorage
   { lat: 21.3069, lon: -157.8583 }, // Honolulu
+];
+/** MDOT SHA CHART: one keyless statewide JSON catalog; live video is public HLS. */
+export const MDOT_CCTV_URL = 'https://chart.maryland.gov/DataFeeds/GetCamerasJson';
+export const DEFAULT_MDOT_MAX_SOURCES = 500;
+/** Hard ceiling on the CHART catalog body. The live list is a few hundred
+ * cameras; this only stops an unbounded upstream from being buffered. */
+export const MDOT_MAX_CATALOG_BYTES = 4 * 1024 * 1024;
+export const MDOT_ANCHORS = [
+  { lat: 39.2904, lon: -76.6122 }, // Baltimore
+  { lat: 38.9847, lon: -77.0947 }, // Bethesda (Capital Beltway)
+  { lat: 38.9784, lon: -76.4922 }, // Annapolis
+  { lat: 38.994, lon: -76.38 }, // Bay Bridge
+  { lat: 39.4143, lon: -77.4105 }, // Frederick
+  { lat: 38.3365, lon: -75.0849 }, // Ocean City
 ];
 /** Camera CATALOGS change rarely; 15 min keeps multi-megabyte upstream list refetches (Austin rows.json + 4 Caltrans districts + TfL + Ontario 511) infrequent. Frames are fetched per-request and are unaffected. */
 export const CCTV_SOURCE_CACHE_MS = 15 * 60 * 1000;

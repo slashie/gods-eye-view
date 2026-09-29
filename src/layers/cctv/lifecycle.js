@@ -250,6 +250,7 @@ export function createLifecycle({
         layerState._horizonCullListener = () => {
           layerState._cameraMoving = false;
           parts.rendering.refreshHorizonCulling();
+          parts.geometryQueue.enqueueVisibleGeometry();
           parts.cards.refreshAmbientCards();
         };
         layerState._viewer.camera.moveEnd.addEventListener(

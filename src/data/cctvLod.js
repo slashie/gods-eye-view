@@ -92,6 +92,32 @@ export const CCTV_CARD_CENTER_WEIGHT = 0.5;
 /** Robust pool-distance percentile used to scale the screen-space term. */
 export const CCTV_CARD_SPREAD_PERCENTILE = 0.9;
 
+/**
+ * Whether a canvas point sits inside the viewport, plus a fractional margin
+ * so a camera on the edge is not dropped during a small pan. A zero-size
+ * canvas has no view yet, so the point is kept.
+ *
+ * @param {{x:number,y:number}|null|undefined} screen
+ * @param {number} viewW
+ * @param {number} viewH
+ * @param {number} [margin]
+ * @returns {boolean}
+ */
+export function screenPointInView(screen, viewW, viewH, margin = 0.06) {
+  if (!hasFiniteCctvViewport(viewW, viewH)) return true;
+  if (!screen || !Number.isFinite(screen.x) || !Number.isFinite(screen.y))
+    return false;
+  const pad = Number.isFinite(margin) ? Math.max(0, margin) : 0;
+  const marginX = viewW * pad;
+  const marginY = viewH * pad;
+  return (
+    screen.x >= -marginX &&
+    screen.x <= viewW + marginX &&
+    screen.y >= -marginY &&
+    screen.y <= viewH + marginY
+  );
+}
+
 /** True only when both viewport dimensions are finite positive pixels. */
 export function hasFiniteCctvViewport(viewW, viewH) {
   return (

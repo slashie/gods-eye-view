@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
 import { horizonOccluder } from '../../data/iconOrientation.js';
+import { screenPointInView } from '../../data/cctvLod.js';
 import { isHeadingEstimated } from './headingConfidence.js';
 import {
   ACTIVE_CAMERA_COLOR,
@@ -10,6 +11,7 @@ import {
   ACTIVE_COVERAGE_EDGE,
   IDLE_COVERAGE_EDGE_MUTED,
   ACTIVE_COVERAGE_EDGE_DEPTHFAIL,
+  CARD_VIEW_MARGIN,
 } from './policy.js';
 
 export function createRendering({
@@ -120,19 +122,11 @@ export function createRendering({
   }
 
   /**
-   * Updates visual styles (colors, widths, visibility) for all camera billboards,
-   * coverage polylines, viewshed volumes, and projection entities based on which
-   * camera is active, whether the layer is enabled, and the current
-   * coverage-mode/projection toggle states.
-   */
-  /**
-   * Field-test fix (2026-07-06): horizon-culls camera billboards, mirroring the
-   * flights layer's EllipsoidalOccluder pass. With the Cesium globe hidden
-   * (Google-3D regime) nothing writes far-side depth, and the billboards are now
-   * always-on-top (`disableDepthTestDistance: INFINITY` — the far-zoom submerge
-   * fix), so without this pass London's cluster would shine through the planet
-   * from a US viewpoint. Pure math over ≤ catalog-size points; runs on
-   * camera.moveEnd + init only (event-driven — no steady-state work).
+   * Shows a camera icon only when it is on the near side of the globe and
+   * inside the current view. Far-side icons would shine through the planet
+   * because these billboards are always-on-top. Off-screen icons stay in the
+   * catalog but are not drawn, so a statewide pack does not paint every
+   * camera while you look at one city. Runs on camera.moveEnd and init.
    */
 
   function refreshHorizonCulling() {
@@ -142,13 +136,31 @@ export function createRendering({
       !layerState._records.length
     )
       return;
+    const scene = layerState._viewer.scene;
+    const width = scene.canvas.clientWidth || scene.canvas.width || 0;
+    const height = scene.canvas.clientHeight || scene.canvas.height || 0;
     const occluder = horizonOccluder(layerState._viewer.camera);
     for (const record of layerState._records) {
       const bb = record.billboard;
       if (!bb) continue;
-      const visible = occluder.isPointVisible(bb.position);
+      const onNearSide = occluder.isPointVisible(bb.position);
+      let visible = onNearSide;
+      if (onNearSide && width > 0 && height > 0) {
+        const screen = scene.cartesianToCanvasCoordinates(bb.position);
+        visible = screenPointInView(screen, width, height, CARD_VIEW_MARGIN);
+      }
       if (bb.show !== visible) bb.show = visible;
     }
+  }
+
+  /** Records whose icons are currently shown. The selected camera is included
+   * so its plane can be built even when the icon sits just outside the view. */
+  function recordsToPrepare() {
+    const activeId = layerState._activeCameraId;
+    return layerState._records.filter(
+      (record) =>
+        record.billboard?.show !== false || record.camera.id === activeId,
+    );
   }
 
   /**
@@ -324,6 +336,7 @@ export function createRendering({
     refreshCctvFocusStyles,
     applyCctvFocusDeemphasis,
     refreshHorizonCulling,
+    recordsToPrepare,
     hideCctvRecordVisuals,
     hideCctvVisuals,
     refreshCoverageStyles,

@@ -289,12 +289,27 @@ export function createGeometryQueue({
    * loaded/total progress through uiState()/getStats() while running.
    */
 
+  /**
+   * Ground-samples cameras that are on screen and not yet resolved for the
+   * current map. Called when the view settles so panning into a new city
+   * builds those cameras without walking the rest of the catalog.
+   */
+  function enqueueVisibleGeometry() {
+    if (!layerState._enabled || !layerState._viewer) return;
+    const regime = parts.ground.currentSurfaceRegime();
+    const pending = parts.rendering.recordsToPrepare().filter((record) => {
+      return record.groundResolved?.[regime] !== true;
+    });
+    if (pending.length) enqueueGeometryRefresh(pending);
+  }
+
   function startGeometryLoadQueue() {
     stopGeometryLoadQueue();
     // Fresh drain → fresh one-shot completion pass: re-arm the tiles-ready
     // latch so update() can complete any records this drain leaves unresolved.
     layerState._tilesReadyReenqueued = false;
     if (!layerState._records.length) return;
+    parts.rendering.refreshHorizonCulling();
     const active = parts.selection.getActiveRecord();
     const carto = layerState._viewer?.camera?.positionCartographic;
     const refLat = carto
@@ -303,8 +318,9 @@ export function createGeometryQueue({
     const refLon = carto
       ? Cesium.Math.toDegrees(carto.longitude)
       : (active?.camera.lon ?? 0);
+    const inView = new Set(parts.rendering.recordsToPrepare());
     const pending = layerState._records
-      .filter((record) => record !== active)
+      .filter((record) => record !== active && inView.has(record))
       .map((record) => ({
         record,
         distKm: parts.model.haversineKm(
@@ -335,5 +351,6 @@ export function createGeometryQueue({
     processGeometryBatch,
     enqueueGeometryRefresh,
     startGeometryLoadQueue,
+    enqueueVisibleGeometry,
   };
 }

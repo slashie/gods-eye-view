@@ -76,6 +76,10 @@ import {
   USGS_NIMS_MAX_CATALOG_BYTES,
   USGS_NIMS_MAX_IMAGE_AGE_MS,
   USGS_NIMS_ANCHORS,
+  MDOT_CCTV_URL,
+  DEFAULT_MDOT_MAX_SOURCES,
+  MDOT_MAX_CATALOG_BYTES,
+  MDOT_ANCHORS,
 } from './constants.js';
 import {
   toFiniteNumber,
@@ -2137,6 +2141,115 @@ export async function loadUsgsNimsSourcesFromOpenData() {
   } catch (error) {
     console.warn(
       '[CCTV] USGS NIMS source download error:',
+      error?.message || error,
+    );
+    return [];
+  }
+}
+
+const MDOT_CAMERA_ID = /^[a-f0-9]{32}$/i;
+const MDOT_STREAM_HOST = /^strmr\d+\.sha\.maryland\.gov$/;
+
+/**
+ * Maryland box, padded to include Ocean City. A bad upstream coordinate
+ * cannot place a CHART camera outside the state.
+ */
+function isLikelyMarylandCoordinate(lat, lon) {
+  return lat >= 37.8 && lat <= 39.8 && lon >= -79.55 && lon <= -74.9;
+}
+
+/**
+ * Load MDOT SHA / CHART highway cameras. The catalog is keyless JSON.
+ * Each camera is live HLS on the SHA streamer named by the row. The JPEG
+ * thumbnail is only the still used when video is not playing.
+ *
+ * @returns {Promise<Array<object>>} Normalized camera source objects.
+ */
+export async function loadMdotSourcesFromOpenData() {
+  try {
+    const resp = await fetch(MDOT_CCTV_URL, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
+      redirect: 'error',
+    });
+    if (!resp.ok) {
+      console.warn('[CCTV] MDOT source download failed:', resp.status);
+      return [];
+    }
+    const payload = await readResponseJsonCapped(resp, MDOT_MAX_CATALOG_BYTES);
+    const rows = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.data)
+        ? payload.data
+        : [];
+    if (!rows.length) return [];
+
+    const cameras = [];
+    for (const row of rows) {
+      if (String(row?.commMode || '').toUpperCase() !== 'ONLINE') continue;
+      if (String(row?.opStatus || '').toUpperCase() !== 'OK') continue;
+      const lat = toFiniteNumber(row?.lat);
+      const lon = toFiniteNumber(row?.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      if (!isLikelyMarylandCoordinate(lat, lon)) continue;
+
+      const rawId = String(row?.id || '').trim();
+      if (!MDOT_CAMERA_ID.test(rawId)) continue;
+      const host = String(row?.cctvIp || '').trim().toLowerCase();
+      if (!MDOT_STREAM_HOST.test(host)) continue;
+      const streamUrl = `https://${host}/rtplive/${rawId}/playlist.m3u8`;
+      const cameraId = `mdot-${rawId.toLowerCase()}`;
+      const title = String(row?.name || row?.description || '').trim();
+      const headingText = `${row?.description || ''} ${row?.name || ''}`;
+      const heading = directionToHeading(headingText);
+      const hasHeading = Number.isFinite(heading);
+      const region = (
+        Array.isArray(row?.cameraCategories) ? row.cameraCategories : []
+      )
+        .map((entry) => String(entry || '').trim())
+        .find(Boolean);
+
+      cameras.push({
+        id: cameraId,
+        name: title || `MDOT ${rawId}`,
+        city: region || 'Maryland',
+        cityId: 'maryland',
+        provider: 'MDOT SHA',
+        lat,
+        lon,
+        headingDeg: hasHeading ? heading : fallbackHeadingFromId(cameraId),
+        headingConfidence: hasHeading ? 'high' : 'low',
+        pitchDeg: hasHeading ? -24 : -18,
+        fovDeg: hasHeading ? 56 : 44,
+        rangeM: hasHeading ? 210 : 145,
+        mountHeightM: hasHeading ? 10 : 8,
+        groundElevationM: 10,
+        feedType: 'hls',
+        url: streamUrl,
+        snapshotUrl: `https://chart.maryland.gov/wwwroot/thumbnails/${rawId}.jpg`,
+        sourceKind: 'mdot-chart',
+        license: 'Public MDOT SHA / CHART traffic camera',
+        credit: `https://chart.maryland.gov/Video/GetVideo/${rawId}`,
+      });
+    }
+
+    const unique = Array.from(
+      new Map(cameras.map((camera) => [camera.id, camera])).values(),
+    );
+    const maxRaw = Number(
+      process.env.CCTV_MDOT_MAX_SOURCES || DEFAULT_MDOT_MAX_SOURCES,
+    );
+    const maxCount = Number.isFinite(maxRaw)
+      ? Math.max(8, Math.min(600, Math.floor(maxRaw)))
+      : DEFAULT_MDOT_MAX_SOURCES;
+    const prioritized = prioritizeSources(unique, maxCount, MDOT_ANCHORS);
+    console.log(
+      `[CCTV] Loaded MDOT camera sources: ${unique.length} (using nearest ${prioritized.length})`,
+    );
+    return prioritized;
+  } catch (error) {
+    console.warn(
+      '[CCTV] MDOT source download error:',
       error?.message || error,
     );
     return [];
